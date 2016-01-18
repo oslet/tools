@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/md5"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -9,10 +10,24 @@ import (
 	"path/filepath"
 )
 
+var pathname string
+
+func init() {
+	flag.StringVar(&pathname, "path", "", "pathname need to calculate md5sum")
+
+	flag.Usage = func() {
+		fmt.Printf("Usage: %s pathname\n", os.Args[0])
+		flag.PrintDefaults()
+	}
+}
+
 func printFile(ignoreDirs []string) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			log.Print(err)
+			//log.Print(err)
+			return nil
+		}
+		if info.Name() == "test*" {
 			return nil
 		}
 		if info.IsDir() {
@@ -38,10 +53,13 @@ func printFile(ignoreDirs []string) filepath.WalkFunc {
 }
 
 func main() {
+	flag.Parse()
+	if len(pathname) == 0 {
+		flag.Usage()
+	}
 	log.SetFlags(log.Lshortfile)
-	dir := os.Args[1]
-	ignoreDirs := []string{"test", ".hg", ".git"}
-	err := filepath.Walk(dir, printFile(ignoreDirs))
+	ignoreDirs := []string{"test", "log", "Log"}
+	err := filepath.Walk(pathname, printFile(ignoreDirs))
 	if err != nil {
 		log.Fatal(err)
 	}
