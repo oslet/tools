@@ -37,7 +37,7 @@ func filesInDir(dirname string) []string {
 	// Return a list of all files in the directory, this is recursive
 	var files []string
 	walkFn := func(path string, info os.FileInfo, err error) error {
-		if isFile(path) && info.Name() != "file.md5.txt" && info.Name() != "makemd5.bat" {
+		if isFile(path) && info.Name() != "file.md5.txt" && info.Name() != "makemd5.bat" && info.Name() != "Log" {
 			files = append(files, path)
 		}
 		return nil
@@ -98,7 +98,7 @@ func ParseVerifyFile(filename string) ([]string, []string, error) {
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		sliced := strings.Split(scanner.Text(), " ")
+		sliced := strings.Split(scanner.Text(), "\t")
 		if len(sliced) != 2 {
 			return files, hashes, errors.New("Malformated line")
 		}
@@ -145,13 +145,17 @@ func main() {
 
 	// Compute MD5 or Check
 	if check {
+		fmt.Println("Start checking")
 		files, sums, err := ParseVerifyFile(inFilename)
+
 		if err != nil {
 			panic(err)
+			os.Exit(1)
 		}
 		matching, err := VerifyMD5Sum(files, sums)
 		if err != nil {
 			panic(err)
+			os.Exit(1)
 		}
 		something_failed := false
 		for i := range files {
@@ -172,7 +176,7 @@ func main() {
 	} else {
 		for _, file := range files {
 			hash := Md5SumFile(file)
-			fmt.Printf("%s %s\n", hash, file)
+			fmt.Printf("%s\t%s\n", hash, file)
 		}
 	}
 }
